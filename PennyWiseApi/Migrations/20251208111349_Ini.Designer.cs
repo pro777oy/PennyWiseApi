@@ -12,7 +12,7 @@ using PennyWiseApi.Data;
 namespace PennyWiseApi.Migrations
 {
     [DbContext(typeof(ApplicationDbContext))]
-    [Migration("20251208105913_Ini")]
+    [Migration("20251208111349_Ini")]
     partial class Ini
     {
         /// <inheritdoc />
@@ -38,6 +38,9 @@ namespace PennyWiseApi.Migrations
                         .IsRequired()
                         .HasMaxLength(10)
                         .HasColumnType("character varying(10)");
+
+                    b.Property<decimal>("CurrentBalance")
+                        .HasColumnType("numeric");
 
                     b.Property<string>("Description")
                         .HasMaxLength(200)
@@ -122,7 +125,7 @@ namespace PennyWiseApi.Migrations
                         .HasColumnType("timestamp with time zone");
 
                     b.Property<DateTime>("Date")
-                        .HasColumnType("timestamp without time zone");
+                        .HasColumnType("timestamp with time zone");
 
                     b.Property<DateTime?>("DeletedAt")
                         .HasColumnType("timestamp with time zone");

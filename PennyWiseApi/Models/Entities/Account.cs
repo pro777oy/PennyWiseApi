@@ -14,6 +14,10 @@ public class Account
     public string? Description { get; set; }
 
     public decimal InitialBalance { get; set; }
+    
+    public decimal CurrentBalance { get; set; }
+    
+     
     public string Currency { get; set; } = "BDT";
 
     [Column(TypeName = "timestamp with time zone")]
