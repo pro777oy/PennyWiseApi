@@ -6,7 +6,6 @@ using PennyWiseApi.Models.Config;
 using PennyWiseApi.Services.Implementations;
 using PennyWiseApi.Services.Interfaces;
 using System.Text;
-using Microsoft.OpenApi;
 using Microsoft.OpenApi.Models;
 
 var builder = WebApplication.CreateBuilder(args);

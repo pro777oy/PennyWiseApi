@@ -143,6 +143,75 @@ public class TransactionsController(ApplicationDbContext db) : ControllerBase
 
         return CreatedAtAction(nameof(GetTransaction), new { id = entity.Id }, new { entity.Id });
     }
+    
+    
+    [HttpPost("transfer")]
+    public async Task<IActionResult> CreateTransfer([FromBody] TransferCreateDto dto)
+    {
+        var userId = GetUserId();
+
+        if (dto.FromAccountId == dto.ToAccountId)
+            return BadRequest("Source and destination accounts must be different.");
+
+        // Validate both accounts belong to the same user
+        var accounts = await db.Accounts
+            .Where(a => (a.Id == dto.FromAccountId || a.Id == dto.ToAccountId) 
+                        && a.UserId == userId)
+            .ToListAsync();
+
+        if (accounts.Count != 2)
+            return BadRequest("Invalid accounts for transfer.");
+
+        await using var tx = await db.Database.BeginTransactionAsync();
+
+        try
+        {
+            // 1️⃣ Transfer OUT (expense from source)
+            var outTxn = new Transaction
+            {
+                Id = Guid.NewGuid(),
+                UserId = userId,
+                AccountId = dto.FromAccountId,
+                Amount = dto.Amount,
+                Type = TransactionType.Expense,
+                Description = dto.Description,
+                Date = dto.Date,
+                CreatedAt = DateTime.UtcNow
+            };
+
+            // 2️⃣ Transfer IN (income into destination)
+            var inTxn = new Transaction
+            {
+                Id = Guid.NewGuid(),
+                UserId = userId,
+                AccountId = dto.ToAccountId,
+                Amount = dto.Amount,
+                Type = TransactionType.Income,
+                Description = dto.Description,
+                Date = dto.Date,
+                CreatedAt = DateTime.UtcNow
+            };
+
+            db.Transactions.Add(outTxn);
+            db.Transactions.Add(inTxn);
+
+            await db.SaveChangesAsync();
+            await tx.CommitAsync();
+
+            return Ok(new
+            {
+                success = true,
+                transferOutId = outTxn.Id,
+                transferInId = inTxn.Id
+            });
+        }
+        catch
+        {
+            await tx.RollbackAsync();
+            throw;
+        }
+    }
+
 
 
     [HttpPut("{id:guid}")]
